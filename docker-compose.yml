@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ecg-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=./models/best_model.pth
+      - SCALER_PATH=./models/scaler.pkl
+    volumes:
+      - ./backend/models:/app/models:ro
+    restart: unless-stopped
+    networks:
+      - ecg-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: ecg-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - ecg-network
+
+networks:
+  ecg-network:
+    driver: bridge
