@@ -11,6 +11,8 @@ docker-compose up --build
 # API: http://localhost:8000/docs
 
 # 4. Shutdown
-# Ctrl+C w terminalu, potem:
+Ctrl+C 
+
 docker-compose down
+
 
