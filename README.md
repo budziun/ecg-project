@@ -1,5 +1,6 @@
 # 1. Clone repo
 git clone https://github.com/budziun/ecg-project.git
+
 cd ecg-project
 
 # 2. Run docker
@@ -12,3 +13,4 @@ docker-compose up --build
 # 4. Shutdown
 # Ctrl+C w terminalu, potem:
 docker-compose down
+
