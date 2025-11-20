@@ -1,97 +1,79 @@
-# 🫀 ECG Project - Setup Guide
+# 🚀 Setup Guide
 
-A quick guide to get your ECG Project running smoothly.  
-Follow the steps below to set up your environment and verify that everything works.
+Complete guide to setting up and running the ECG Arrhythmia Classifier project locally.
 
----
+## 📋 Prerequisites
 
-## ⚙️ Prerequisites
-- **Python**: 3.11 or 3.12 (recommended)
-- **Git**: optional, but useful for cloning the repository
+Before you begin, ensure you have the following installed on your system:
 
----
+- **Git** - [Download here](https://git-scm.com/downloads)
+- **Docker** - [Download here](https://www.docker.com/products/docker-desktop)
+- **Docker Compose** - Included with Docker Desktop
 
-## 🚀 Setup Instructions
+## 🔧 Installation
 
-### 1️⃣ Clone or Download the Project
-```bash
-git clone <repo-url>
-cd ECG_Project
-```
+### Step 1: Clone the Repository
 
-If you don't use Git, you can download the ZIP from the repository page and extract it manually.
+Open your terminal and run:
 
----
+git clone https://github.com/budziun/ecg-project.git
+cd ecg-project
 
-### 2️⃣ Create a Virtual Environment
 
-#### Windows
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
+### Step 2: Build and Run with Docker
 
-#### Mac/Linux
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
+Build and start all services (backend + frontend):
 
----
+docker-compose up --build
 
-### 3️⃣ Install Dependencies
-```bash
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
-```
+### Step 3: Access the Application
 
----
+Once the containers are running, open your browser:
 
-### 4️⃣ Verify Installation
-To confirm that all dependencies are correctly installed:
-```bash
-python test_imports.py
-```
+- **Frontend Application:** [http://localhost:3000](http://localhost:3000)
+- **Backend API (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
 
-If no errors appear, you’re good to go.
+## 🛑 Stopping the Application
 
----
+### Graceful Shutdown
 
-## 🧩 Troubleshooting
+Press `Ctrl+C` in the terminal where Docker is running.
 
-### ❗ Pandas installation fails on Windows + Python 3.13
-**Solution:** Use Python **3.11** or **3.12** instead.
+### Clean Shutdown
 
----
+docker-compose down
 
-### ❗ PyTorch not installing
-**Solution:** Install the CPU version manually:
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-```
+### Remove All Data (Clean Reset)
 
----
+docker-compose down -v
 
-### ❗ Import errors
-**Solution:** Make sure your virtual environment is activated.  
-You should see `(venv)` at the beginning of your terminal line.
+### Restart Services
 
----
+docker-compose restart
 
-## 🗂️ Project Structure
-```
-ECG_Project/
-├── venv/            # Virtual environment (don't commit)
-├── data/            # Dataset storage
-├── models/          # Saved models
-├── notebooks/       # Jupyter notebooks
-├── requirements.txt # Dependencies
-└── *.py             # Python scripts
-```
+## ✅ Verifying Installation
 
----
+After starting the application, verify everything works:
+
+1. ✅ Frontend loads at `http://localhost:3000`
+2. ✅ API documentation loads at `http://localhost:8000/docs`
+3. ✅ Upload CSV feature works
+4. ✅ Model predictions display correctly
+5. ✅ "About Project" modal opens and displays team information
+
+## 📚 Additional Resources
+
+- [Project Repository](https://github.com/budziun/ecg-project)
+- [Docker Documentation](https://docs.docker.com/)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [React Documentation](https://react.dev/)
 
 ## 👥 Team
-- **Maciej** — Project Manager  
-- **Adam** — QA / UX  
-- **Jakub** — AI Engineer
+
+- **Maciej Świder** - Project Manager, Data Scientist
+- **Jakub Budzich** - ML/Web Engineer, Tech Lead
+- **Adam Czaplicki** - UX Designer, QA Specialist
+
+---
+
+**University of Warmia and Mazury in Olsztyn • Computer Science • 2025**
