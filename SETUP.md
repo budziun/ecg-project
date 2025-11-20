@@ -17,6 +17,8 @@ Before you begin, ensure you have the following installed on your system:
 Open your terminal and run:
 
 git clone https://github.com/budziun/ecg-project.git
+
+
 cd ecg-project
 
 
