@@ -1,4 +1,3 @@
-# main.py
 """
 FastAPI application for ECG Arrhythmia Classification
 """
@@ -23,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="ECG Arrhythmia Classifier",
-    description="API dla klasyfikacji zaburzeń rytmu serca z sygnału EKG (z normalizacją)",
+    description="API for heart rhythm disorder classification from ECG signals (with normalization)",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -54,6 +53,7 @@ async def startup_event():
 
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
+    """Check API health status"""
     return {
         "status": "healthy",
         "model_loaded": is_model_loaded()
@@ -61,9 +61,10 @@ async def health_check():
 
 @app.get("/", tags=["Info"])
 async def root():
+    """API information and status"""
     return {
         "message": "ECG Arrhythmia Classifier API",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "docs": "http://localhost:8000/docs",
         "model_loaded": is_model_loaded(),
         "note": "All signals are normalized using StandardScaler before prediction"
@@ -108,13 +109,18 @@ async def predict(ecg_data: ECGSignal):
 
 @app.post("/upload-csv", tags=["File Upload"])
 async def upload_csv_file(file: UploadFile = File(...)):
+    """
+    Upload and classify ECG signal from CSV file
+    - Reads first row as signal data
+    - Automatically normalizes the signal
+    - Returns prediction with both raw and normalized signals
+    """
     try:
         if not is_model_loaded():
             raise HTTPException(status_code=503, detail="Model not loaded")
 
         contents = await file.read()
         try:
-            # Zakładamy, że sygnał jest w pierwszym wierszu
             df = pd.read_csv(io.BytesIO(contents), header=None)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Invalid CSV format: {e}")
@@ -122,7 +128,6 @@ async def upload_csv_file(file: UploadFile = File(...)):
         if df.shape[0] == 0:
             raise HTTPException(status_code=400, detail="CSV file is empty")
 
-        # Wczytujemy sygnał z pierwszego wiersza
         signal_values = df.iloc[0].values.astype(np.float32)
         signal_values = signal_values[~np.isnan(signal_values)]
 
@@ -131,7 +136,6 @@ async def upload_csv_file(file: UploadFile = File(...)):
 
         logger.info(f"📥 CSV Upload - Raw signal length: {len(signal_values)}")
 
-        # Przygotowanie sygnału do wyświetlenia (usunięcie trailing zeros)
         signal_for_plot = signal_values.copy()
         trailing_zeros = 0
         for i in range(len(signal_for_plot) - 1, -1, -1):
@@ -142,17 +146,12 @@ async def upload_csv_file(file: UploadFile = File(...)):
         if trailing_zeros > 50:
             signal_for_plot = signal_for_plot[:-trailing_zeros]
 
-        # ===== PREDYKCJA =====
-        # Używamy tej samej, spójnej funkcji predict_ecg
         result = predict_ecg(signal_values.tolist())
 
         if "error" in result:
             raise HTTPException(status_code=500, detail=result["error"])
 
-        # Dodajemy sygnał do odpowiedzi dla frontendu
-        result['signal_for_plot'] = signal_for_plot.tolist()
-        
-        # Zwracamy znormalizowany sygnał, który był użyty do predykcji
+        result['signal_raw'] = signal_for_plot.tolist()
         normalized_signal = scaler.transform(signal_values.reshape(1, -1))[0]
         result['signal_normalized'] = normalized_signal.tolist()
 
@@ -173,8 +172,9 @@ async def upload_csv_file(file: UploadFile = File(...)):
 @app.get("/test-samples", tags=["Test Data"])
 async def get_test_samples(count: int = 5):
     """
-    Get random samples from test dataset (X_test.npy, y_test.npy) with predictions
-    Test data will be normalized using the trained scaler
+    Get random samples from MIT-BIH test dataset with predictions
+    - Returns both raw and normalized signals for frontend display
+    - Includes true labels and prediction accuracy
     """
     try:
         if not is_model_loaded():
@@ -199,17 +199,24 @@ async def get_test_samples(count: int = 5):
         }
 
         for idx in indices:
-            signal = X_test[idx].tolist()
+            signal_raw = X_test[idx].flatten()
             label = int(y_test[idx])
 
-            result = predict_ecg(signal)
+            result = predict_ecg(signal_raw.tolist())
+
+            result['signal_raw'] = signal_raw.tolist()
+
+            signal_normalized = scaler.transform(signal_raw.reshape(1, -1))[0]
+            result['signal_normalized'] = signal_normalized.tolist()
+
             result['true_label'] = class_map.get(label, 'Unknown')
             result['true_label_id'] = label
             result['index'] = int(idx)
             result['is_correct'] = result['predicted_class'] == result['true_label']
+
             samples.append(result)
 
-        logger.info(f"✅ Generated {len(samples)} test samples")
+        logger.info(f"✅ Generated {len(samples)} test samples with signals")
         return {"samples": samples, "count": len(samples)}
 
     except FileNotFoundError as e:
@@ -217,124 +224,10 @@ async def get_test_samples(count: int = 5):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"❌ Test samples error: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/test-samples-with-csv", tags=["Test csv"])
-async def get_test_samples_with_csv(count: int = 1):
-    """
-    Get random samples from test dataset with predictions
-    and return corresponding CSV content as string for debugging/preview.
-    """
-    try:
-        if not is_model_loaded():
-            raise HTTPException(status_code=503, detail="Model not loaded")
-
-        X_test_path = DATA_PATH / 'X_test.npy'
-        y_test_path = DATA_PATH / 'y_test.npy'
-
-        if not X_test_path.exists() or not y_test_path.exists():
-            raise FileNotFoundError("Test data files not found")
-
-        X_test = np.load(X_test_path)
-        y_test = np.load(y_test_path)
-
-        max_count = min(count, len(X_test))
-        indices = random.sample(range(len(X_test)), max_count)
-
-        class_map = {
-            0: 'Normal', 1: 'Supraventricular', 2: 'Ventricular',
-            3: 'Fusion', 4: 'Unknown'
-        }
-
-        samples = []
-        for idx in indices:
-            signal = X_test[idx].reshape(-1)
-            label = int(y_test[idx])
-
-            result = predict_ecg(signal.tolist())
-            result['true_label'] = class_map.get(label, 'Unknown')
-            result['true_label_id'] = label
-            result['index'] = int(idx)
-            result['is_correct'] = result['predicted_class'] == result['true_label']
-
-            # Dodajemy sygnał znormalizowany do zwracanych danych (jeśli masz go w result lub sam możesz go znormalizować)
-            signal_normalized = result.get('signal_normalized',
-                                           None)  # jeśli result tego nie zwraca, zrób normalizację tu
-
-            csv_string = ','.join([f"{x:.10f}" for x in signal])
-
-            samples.append({
-                'prediction': result,
-                'csv_data': csv_string,
-                'signal_normalized': signal_normalized  # do frontendowej weryfikacji
-            })
-
-        logger.info(f"✅ Generated {len(samples)} test samples with CSV")
-        return {"samples": samples, "count": len(samples)}
-
-    except FileNotFoundError as e:
-        logger.error(f"❌ File not found: {e}")
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        logger.error(f"❌ Test samples error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# ================== BATCH PREDICTIONS - CSV ==================
-@app.post("/batch-predict-csv", tags=["Batch"])
-async def batch_predict_csv(file: UploadFile = File(...)):
-    try:
-        if not is_model_loaded():
-            raise HTTPException(status_code=503, detail="Model not loaded")
-
-        contents = await file.read()
-        df = pd.read_csv(io.BytesIO(contents), header=None)
-
-        if df.shape[0] == 0:
-            raise HTTPException(status_code=400, detail="CSV file is empty")
-
-        results = []
-        correct_count = 0
-        class_map = {
-            0: 'Normal', 1: 'Supraventricular', 2: 'Ventricular',
-            3: 'Fusion', 4: 'Unknown'
-        }
-
-        # Zakładamy, że ostatnia kolumna to etykieta
-        for idx in range(len(df)):
-            try:
-                signal = df.iloc[idx, :-1].values.astype(np.float32)
-                label = int(df.iloc[idx, -1])
-
-                result = predict_ecg(signal.tolist())
-                result['true_label'] = class_map.get(label, 'Unknown')
-                result['true_label_id'] = label
-                result['index'] = int(idx)
-
-                is_correct = result['predicted_class'] == result['true_label']
-                result['is_correct'] = is_correct
-
-                if is_correct:
-                    correct_count += 1
-
-                results.append(result)
-            except Exception as e:
-                logger.warning(f"⚠️ Sample {idx} failed: {e}")
-                continue
-
-        accuracy = correct_count / len(results) if len(results) > 0 else 0
-        logger.info(f"✅ Batch prediction: {len(results)} samples, accuracy: {accuracy:.2%}")
-
-        return {
-            "predictions": results,
-            "count": len(results),
-            "accuracy": accuracy,
-            "correct": correct_count
-        }
-
-    except Exception as e:
-        logger.error(f"❌ Batch CSV error: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
 
 # ================== EXCEPTION HANDLER ==================
 
