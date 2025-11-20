@@ -163,7 +163,7 @@ Training produces:
 ![Training Curves](https://github.com/budziun/ecg-project/blob/main/results/training_curves.png?raw=true)
 
 **Quality Metrics - Normal vs Abnormal**
-![Model Quality Metrics](https://github.com/budziun/ecg-project/blob/main/frontend/public/qm.png?raw=true
+![Quality Metrics](https://github.com/budziun/ecg-project/blob/main/frontend/public/qm.png?raw=true)
 
 ##  Quick Start
 
@@ -237,3 +237,4 @@ For detailed setup instructions, see [SETUP.md](SETUP.md).
 
 
 **University of Warmia and Mazury in Olsztyn • Computer Science • 2025**
+
