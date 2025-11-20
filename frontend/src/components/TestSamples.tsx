@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { TestSample } from '../types';
+import { TestSample, SignalData } from '../types';
 import { api } from '../services/api';
 
 interface TestSamplesProps {
-    onSelect: (result: TestSample, signal: number[]) => void;
+    onSelect: (result: TestSample, signal: SignalData) => void;
 }
 
 const TestSamples: React.FC<TestSamplesProps> = ({ onSelect }) => {
@@ -13,15 +13,16 @@ const TestSamples: React.FC<TestSamplesProps> = ({ onSelect }) => {
     const handleLoadSamples = async () => {
         setLoading(true);
         setError(null);
-
         try {
             const data = await api.getTestSamples(1);
             const sample = data.samples[0];
 
-            // Generuj sygnał z probabilities (demo)
-            const signal = Array(187).fill(0).map(() => Math.random() * 0.5);
+            const signalData: SignalData = {
+                raw: sample.signal_raw || [],
+                normalized: sample.signal_normalized || []
+            };
 
-            onSelect(sample, signal);
+            onSelect(sample, signalData);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load test data');
         } finally {
@@ -34,13 +35,15 @@ const TestSamples: React.FC<TestSamplesProps> = ({ onSelect }) => {
             <button
                 onClick={handleLoadSamples}
                 disabled={loading}
-                className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400
-          text-white font-bold py-2 px-4 rounded-lg transition"
+                className="w-full px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors text-base"
             >
                 {loading ? 'Loading...' : 'Load one Test Sample'}
             </button>
-
-            {error && <p className="text-red-600">{error}</p>}
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded font-medium">
+                    {error}
+                </div>
+            )}
         </div>
     );
 };

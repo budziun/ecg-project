@@ -1,6 +1,5 @@
 import { ECGPrediction, TestSamplesResponse, BatchPredictionResponse } from '../types';
 
-// ✅ SMART API URL - auto-detektuje localhost lub IP!
 const getApiUrl = (): string => {
     const host = window.location.hostname;
     const port = 8000;
@@ -38,7 +37,6 @@ export const api = {
         return response.json();
     },
 
-    // ✅ NOWA FUNKCJA - dla CSV upload
     uploadECGFile: async (formData: FormData) => {
         const response = await fetch(`${API_BASE}/upload-csv`, {
             method: 'POST',
@@ -48,19 +46,18 @@ export const api = {
 
         const data = await response.json();
 
-        // ✅ Konwertuj na prawidłowy typ - wszystkie pola wymagane!
         return {
             predicted_class: data.predicted_class || 'Unknown',
             confidence: data.confidence || 0,
-            is_uncertain: data.is_uncertain ?? false,  // ✅ ?? dla undefined
+            is_uncertain: data.is_uncertain ?? false,
             Normal: data.Normal ?? 0,
             Supraventricular: data.Supraventricular ?? 0,
             Ventricular: data.Ventricular ?? 0,
             Fusion: data.Fusion ?? 0,
             Unknown: data.Unknown ?? 0,
-            signal_for_plot: data.signal_for_plot || [],
+            signal_raw: data.signal_raw || [],              // ✅ ZMIANA
             signal_normalized: data.signal_normalized || [],
-            threshold: data.threshold ?? 0  // ✅ Zmień na 0 jeśli undefined
+            threshold: data.threshold ?? 0
         };
     }
 };

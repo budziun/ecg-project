@@ -1,20 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TestSample } from '../types';
+import { TestSample, SignalData } from '../types';
 
 interface ResultDisplayProps {
     result: TestSample;
-    signal: number[];
+    signal: SignalData | number[];
 }
 
 const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, signal }) => {
-    // ✅ Filtruj trailing zeros
-    let trimmedSignal = [...signal];
+    const [viewMode, setViewMode] = useState<'normalized' | 'raw'>('normalized');
+
+    const signalData: SignalData = Array.isArray(signal)
+        ? { normalized: signal, raw: [] }
+        : signal;
+
+    const activeSignal = viewMode === 'normalized'
+        ? signalData.normalized
+        : signalData.raw;
+
+    let trimmedSignal = [...activeSignal];
     while (trimmedSignal.length > 0 && trimmedSignal[trimmedSignal.length - 1] === 0) {
         trimmedSignal.pop();
     }
+
     if (trimmedSignal.length < 20) {
-        trimmedSignal = signal;
+        trimmedSignal = activeSignal;
     }
 
     const chartData = trimmedSignal.map((voltage, index) => ({
@@ -34,63 +44,73 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, signal }) => {
     const trueColors = result.true_label ? classColors[result.true_label] || classColors['Normal'] : null;
 
     return (
-        <div className="space-y-8">
-            {/* ECG Signal Chart - SMALLER HEIGHT */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">📈 ECG Signal</h2>
-                <ResponsiveContainer width="100%" height={220}>
+        <div className="space-y-6">
+            {/* ECG Signal Chart */}
+            <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold text-gray-800">📈 ECG Signal</h3>
+
+                    <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                        <button
+                            onClick={() => setViewMode('normalized')}
+                            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                                viewMode === 'normalized'
+                                    ? 'bg-white text-blue-600 font-medium shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                        >
+                            Normalized
+                        </button>
+                        <button
+                            onClick={() => setViewMode('raw')}
+                            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                                viewMode === 'raw'
+                                    ? 'bg-white text-blue-600 font-medium shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                            disabled={!signalData.raw || signalData.raw.length === 0}
+                        >
+                            Raw
+                        </button>
+                    </div>
+                </div>
+
+                <ResponsiveContainer width="100%" height={200}>
                     <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                        <XAxis dataKey="time" stroke="#666" />
-                        <YAxis stroke="#666" />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="time" />
+                        <YAxis />
                         <Tooltip />
-                        <Line
-                            type="monotone"
-                            dataKey="voltage"
-                            stroke="#0066FF"
-                            dot={false}
-                            isAnimationActive={false}
-                            strokeWidth={2}
-                        />
+                        <Line type="monotone" dataKey="voltage" stroke="#3b82f6" dot={false} />
                     </LineChart>
                 </ResponsiveContainer>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* LEFT COLUMN */}
-                <div className={`${colors.bg} border-2 ${colors.text} rounded-lg p-8 shadow-lg`}>
-                    <div className="mb-8 pb-6 border-b-2 border-opacity-20">
-                        <h2 className="text-2xl font-bold text-gray-900">Model Prediction</h2>
+            {/* Results Grid */}
+            <div className="grid grid-cols-2 gap-6">
+                {/* LEFT COLUMN - Model Prediction */}
+                <div className={`${colors.bg} rounded-lg shadow p-6 space-y-4`}>
+                    <div>
+                        <p className="text-sm text-gray-600 mb-1">Model Prediction</p>
+                        <p className={`text-4xl font-extrabold ${colors.text}`}>{result.predicted_class}</p>
                     </div>
 
-                    <div className="mb-8">
-                        <p className={`text-5xl font-bold mb-4 ${colors.text}`}>
-                            {result.predicted_class}
-                        </p>
-
-                        <div>
-                            <p className="text-sm opacity-80 mb-2">Confidence Score</p>
-                            <div className="flex items-center space-x-3">
-                                <div className="flex-1 bg-gray-300 rounded-full h-3">
-                                    <div
-                                        className={`${colors.bar} h-3 rounded-full transition-all`}
-                                        style={{ width: `${result.confidence * 100}%` }}
-                                    />
-                                </div>
-                                <span className="text-2xl font-bold font-mono">
-                  {(result.confidence * 100).toFixed(4)}%
-                </span>
-                            </div>
+                    <div>
+                        <p className="text-sm text-gray-600 mb-2">Confidence Score</p>
+                        <div className="w-full bg-gray-200 rounded-full h-3 mb-1">
+                            <div
+                                className={`${colors.bar} h-3 rounded-full`}
+                                style={{ width: `${result.confidence * 100}%` }}
+                            />
                         </div>
-
-                        <div className="mt-4">
-                            {result.is_uncertain && (
-                                <div className="p-3 bg-yellow-200 border border-yellow-600 rounded text-yellow-800 text-sm font-semibold">
-                                    ⚠️ UNCERTAIN - May require medical review
-                                </div>
-                            )}
-                        </div>
+                        <p className="text-sm font-semibold text-gray-700">{(result.confidence * 100).toFixed(4)}%</p>
                     </div>
+
+                    {result.is_uncertain && (
+                        <div className="bg-yellow-100 border border-yellow-300 rounded p-3 text-sm text-yellow-800">
+                            ⚠️ UNCERTAIN - May require medical review
+                        </div>
+                    )}
 
                     {/* TRUE LABEL */}
                     {result.true_label && trueColors && (
@@ -120,25 +140,23 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, signal }) => {
                     )}
                 </div>
 
-                {/* RIGHT COLUMN: Class Probabilities */}
-                <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Class Probabilities</h3>
-
-                    <div className="space-y-5">
+                {/* RIGHT COLUMN - Class Probabilities */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Class Probabilities</h3>
+                    <div className="space-y-3">
                         {['Normal', 'Supraventricular', 'Ventricular', 'Fusion', 'Unknown'].map((cls) => {
                             const prob = result[cls as keyof TestSample] as number;
                             const pctDecimal = (prob * 100).toFixed(4);
                             const clsColor = classColors[cls];
-
                             return (
                                 <div key={cls}>
-                                    <div className="flex justify-between mb-2">
-                                        <span className="font-bold text-gray-800">{cls}</span>
-                                        <span className="text-gray-700 font-mono font-bold">{pctDecimal}%</span>
+                                    <div className="flex justify-between text-sm mb-1">
+                                        <span className="font-medium">{cls}</span>
+                                        <span className="text-gray-600">{pctDecimal}%</span>
                                     </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-4">
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
                                         <div
-                                            className={`${clsColor.bar} h-4 rounded-full transition-all`}
+                                            className={`${clsColor.bar} h-2 rounded-full`}
                                             style={{ width: `${prob * 100}%` }}
                                         />
                                     </div>
