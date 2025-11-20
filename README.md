@@ -162,6 +162,12 @@ Training produces:
 **Training Curves**
 ![Training Curves](https://github.com/budziun/ecg-project/blob/main/results/training_curves.png?raw=true)
 
+**Precison Recall Curves**
+![Precison Recall Curves](https://github.com/budziun/ecg-project/blob/main/results/recal.png?raw=true)
+
+**ROC Curves**
+![ROC Curves](https://github.com/budziun/ecg-project/blob/main/results/roc.png?raw=true)
+
 **Quality Metrics - Normal vs Abnormal**
 ![Quality Metrics](https://github.com/budziun/ecg-project/blob/main/frontend/public/qm.png?raw=true)
 
@@ -237,4 +243,5 @@ For detailed setup instructions, see [SETUP.md](SETUP.md).
 
 
 **University of Warmia and Mazury in Olsztyn • Computer Science • 2025**
+
 
