@@ -14,43 +14,45 @@ This project implements a hybrid **CNN-LSTM deep neural network** architecture t
 
 ##  Project Structure
 
-ecg-project/
-├── frontend/
-│ ├── src/
-│ │ ├── components/
-│ │ │ ├── AboutModal.tsx # Project modal
-│ │ │ ├── UploadECG.tsx # CSV upload component
-│ │ │ ├── ResultDisplay.tsx # Model predictions
-│ │ │ ├── TestSamples.tsx # Test samples gallery
-│ │ │ └── ...
-│ │ └── services/
-│ │ └── api.ts # Backend API integration
-│ └── public/
-│ └── qm.png # Quality metrics visualization
-├── backend/
-│ ├── main.py # FastAPI routes
-│ ├── inference.py # Model inference
-│ ├── model_definition.py # CNN-LSTM architecture
-│ ├── requirements.txt # Python dependencies
-│ └── models/
-│ ├── best_model.pth # Trained model weights
-│ └── scaler.pkl # Normalization scaler
-├── results/
-│ ├── confusion_matrix.png # Test confusion matrix
-│ ├── training_curves.png # Training visualization
-│ ├── roc_curves_all_sets.png # ROC curves
-│ └── precision_recall_curves_all_sets.png
-├── test_samples_csv/ # 100 test CSV files
-├── ecg.ipynb #  Complete ML training notebook
-├── data_get.py # Dataset download & split
-├── ltsm_cnn.py # Model training script
-├── train_knn.py # KNN baseline model
-├── model_definition.py # Model architecture
-├── test_imports.py # Dependency verification
-├── requirements.txt # Root Python dependencies
-├── docker-compose.yml # Docker orchestration
-├── README.md # This file
-└── SETUP.md # Detailed setup guide
+Project Structure:
+- ecg-project/
+    - frontend/
+        - src/
+            - components/
+                - AboutModal.tsx        # Project modal
+                - UploadECG.tsx         # CSV upload component
+                - ResultDisplay.tsx     # Model predictions
+                - TestSamples.tsx       # Test samples gallery
+                - ...
+            - services/
+                - api.ts                # Backend API integration
+            - public/
+                - qm.png                # Quality metrics visualization
+    - backend/
+        - main.py                  # API routes
+        - inference.py             # Model inference
+        - model_definition.py      # CNN-LSTM architecture
+        - train_knn.py             # Training script
+        - data_get.py              # Dataset prep
+        - ltsm_cnn.py              # Training pipeline
+        - requirements.txt         # Dependencies
+        - models/
+            - best_model.pth         # Trained model
+            - scaler.pkl             # Scaler for normalization
+    - results/
+        - confusion_matrix.png
+        - training_curves.png
+    - test_samples_csv/ # 100 raw csv file to test upload function
+    - docker-compose.yml
+    - ecg.ipynb # Complete ML training notebook
+    - README.md
+    - SETUP.md
+    - data_get.py - file to download and split dataset
+    - ltsm_cnn.py - file with ltsm cnn training 
+    - model_definition.py
+    - requirements.txt
+    - test_imports.py # test requirments install 
+    - train_knn.py # simple knn model baseline
 
 ##  Machine Learning Architecture
 
@@ -67,21 +69,37 @@ ecg-project/
 The system employs a sophisticated hybrid deep learning architecture:
 
 Input (batch, 1, 187 time-steps)
+
 ↓
+
 [Conv1d: 64 filters, kernel=7] → BatchNorm → MaxPool
+
 ↓
+
 [Conv1d: 128 filters, kernel=5] → BatchNorm → MaxPool
+
 ↓
+
 [Conv1d: 256 filters, kernel=3] → BatchNorm → MaxPool
+
 ↓
+
 [Conv1d: 512 filters, kernel=3] → BatchNorm
+
 ↓
+
 Bidirectional LSTM (192 hidden units, 2 layers)
+
 ↓
+
 Attention Mechanism (weighted context aggregation)
+
 ↓
+
 Dense Layers (256 → 128 → 64) with BatchNorm & Dropout
+
 ↓
+
 Output Classification (5 classes)
 
 **Key Features:**
@@ -286,3 +304,4 @@ For detailed setup instructions, see [SETUP.md](SETUP.md).
 ---
 
 **University of Warmia and Mazury in Olsztyn • Computer Science • 2025**
+
