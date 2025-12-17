@@ -209,16 +209,16 @@ python ltsm_cnn.py
 
 ## 📸 Application Screenshots
 
-### Main Interface
-![Main Interface](https://github.com/budziun/ecg-project/blob/main/results/app_main.png?raw=true)
+### Main Interface - upload ecg signal via csv or mit-bh test record
+![Main Interface](https://github.com/budziun/ecg-project/blob/main/results/ecg_main.png?raw=true)
 
 ### Classification Results
 
 **Normal Heartbeat Detection**
-![Normal Classification](https://github.com/budziun/ecg-project/blob/main/results/app_normal.png?raw=true)
+![Normal Classification](https://github.com/budziun/ecg-project/blob/main/results/ecg_normal.png?raw=true)
 
 **Ventricular Arrhythmia Detection**
-![Ventricular Classification](https://github.com/budziun/ecg-project/blob/main/results/app_ventricular.png?raw=true)
+![Ventricular Classification](https://github.com/budziun/ecg-project/blob/main/results/ecg_ventricular.png?raw=true)
 
 ##  Quick Start of WEB app
 
@@ -317,5 +317,6 @@ For detailed setup instructions, see [SETUP.md](SETUP.md).
 ---
 
 **University of Warmia and Mazury in Olsztyn • Computer Science • 2025**
+
 
 
