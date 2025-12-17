@@ -207,6 +207,19 @@ python ltsm_cnn.py
 **Quality Metrics - Normal vs Abnormal**
 ![Quality Metrics](https://github.com/budziun/ecg-project/blob/main/frontend/public/qm.png?raw=true)
 
+## 📸 Application Screenshots
+
+### Main Interface
+![Main Interface](https://github.com/budziun/ecg-project/blob/main/results/app_main.png?raw=true)
+
+### Classification Results
+
+**Normal Heartbeat Detection**
+![Normal Classification](https://github.com/budziun/ecg-project/blob/main/results/app_normal.png?raw=true)
+
+**Ventricular Arrhythmia Detection**
+![Ventricular Classification](https://github.com/budziun/ecg-project/blob/main/results/app_ventricular.png?raw=true)
+
 ##  Quick Start of WEB app
 
 ### Prerequisites
@@ -304,4 +317,5 @@ For detailed setup instructions, see [SETUP.md](SETUP.md).
 ---
 
 **University of Warmia and Mazury in Olsztyn • Computer Science • 2025**
+
 
